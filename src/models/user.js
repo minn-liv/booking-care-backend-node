@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
                 targetKey: "keyMap",
                 as: "genderData",
             });
+
             User.hasOne(models.Markdown, { foreignKey: "doctorId" });
             User.hasOne(models.Doctor_Infor, { foreignKey: "doctorId" });
             User.hasMany(models.Schedule, {
@@ -28,6 +29,10 @@ module.exports = (sequelize, DataTypes) => {
             User.hasMany(models.Booking, {
                 foreignKey: "patientId",
                 as: "patientData",
+            });
+            User.hasMany(models.Booking, {
+                foreignKey: "doctorId",
+                as: "doctorDataList",
             });
         }
     }
@@ -43,6 +48,7 @@ module.exports = (sequelize, DataTypes) => {
             image: DataTypes.STRING,
             roleId: DataTypes.STRING,
             positionId: DataTypes.STRING,
+            is_deleted: DataTypes.INTEGER,
         },
         {
             sequelize,

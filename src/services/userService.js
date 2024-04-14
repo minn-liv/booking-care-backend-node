@@ -39,17 +39,18 @@ let handleUserLogin = (email, password) => {
                         user.password
                     );
                     if (check) {
-                        (userData.errCode = 0), (userData.errMessage = "Ok");
+                        userData.errCode = 0;
+                        userData.errMessage = "Ok";
 
                         delete user.password;
                         userData.user = user;
                     } else {
-                        (userData.errCode = 3),
-                            (userData.errMessage = "Wrong password");
+                        userData.errCode = 3;
+                        userData.errMessage = "Wrong password";
                     }
                 } else {
-                    (userData.errCode = 2),
-                        (userData.errMessage = `User's not found`);
+                    userData.errCode = 2;
+                    userData.errMessage = `User's not found`;
                 }
             } else {
                 // return error
@@ -86,6 +87,9 @@ let getAllUsers = (userId) => {
             let users = "";
             if (userId === "ALL") {
                 users = await db.User.findAll({
+                    where: {
+                        is_deleted: 0,
+                    },
                     attributes: {
                         exclude: ["password"],
                     },
@@ -146,22 +150,41 @@ let createNewUser = (data) => {
 
 let deleteUser = (userId) => {
     return new Promise(async (resolve, reject) => {
-        let foundUser = await db.User.findOne({
-            where: { id: userId },
-        });
-        if (!foundUser) {
+        try {
+            // let foundUser = await db.User.findOne({
+            //     where: { id: userId },
+            // });
+
+            await db.User.update(
+                { is_deleted: 1 },
+                {
+                    where: {
+                        id: userId,
+                    },
+                }
+            );
+
+            // if (!foundUser) {
+            //     resolve({
+            //         errCode: 2,
+            //         errMessage: `The user isn't exist`,
+            //     });
+            // } else {
+            //     // await foundUser.update({
+            //     //     is_deleted: 1,
+            //     // });
+
+            //     foundUser.is_deleted = 1;
+            //     await foundUser.update();
+
+            // }
             resolve({
-                errCode: 2,
-                errMessage: `The user ins't exist`,
+                errCode: 0,
+                errMessage: `The user is deleted`,
             });
+        } catch (e) {
+            reject(e);
         }
-        await db.User.destroy({
-            where: { id: userId },
-        });
-        resolve({
-            errCode: 0,
-            errMessage: `The user is deleted`,
-        });
     });
 };
 

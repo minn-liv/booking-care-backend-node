@@ -1,5 +1,5 @@
 import db from "../models/index";
-import _ from "lodash";
+import _, { includes } from "lodash";
 import emailService from "../services/emailService";
 require("dotenv").config();
 
@@ -117,12 +117,11 @@ let saveDetailInforDoctor = (inputData) => {
                     });
 
                     if (doctorMarkdown) {
-                        (doctorMarkdown.contentHTML = inputData.contentHTML),
-                            (doctorMarkdown.contentMarkdown =
-                                inputData.contentMarkdown),
-                            (doctorMarkdown.description =
-                                inputData.description),
-                            (doctorMarkdown.updatedAt = new Date());
+                        doctorMarkdown.contentHTML = inputData.contentHTML;
+                        doctorMarkdown.contentMarkdown =
+                            inputData.contentMarkdown;
+                        doctorMarkdown.description = inputData.description;
+                        doctorMarkdown.updatedAt = new Date();
 
                         await doctorMarkdown.save();
                     }
@@ -278,10 +277,13 @@ let bulkCreateSchedule = (data) => {
                     raw: true,
                 });
 
+                console.log(existing);
+
                 // compare different
                 let toCreate = _.differenceWith(schedule, existing, (a, b) => {
                     return a.timeType === b.timeType && +a.date === +b.date;
                 });
+                console.log(toCreate);
 
                 // create data
                 if (toCreate && toCreate.length > 0) {
@@ -512,6 +514,7 @@ let getListPatientForDoctor = async (doctorId, date) => {
                     raw: false,
                     nest: true,
                 });
+                console.log(data);
 
                 resolve({
                     errCode: 0,
@@ -566,6 +569,53 @@ let sendRemedy = async (data) => {
     });
 };
 
+let getAllBooking = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let booking = await db.Booking.findAll({
+                include: [
+                    {
+                        model: db.User,
+                        as: "patientData",
+                        attributes: [
+                            "email",
+                            "firstName",
+                            "lastName",
+                            "address",
+                            "gender",
+                        ],
+                    },
+                    {
+                        model: db.User,
+                        as: "doctorDataList",
+                        attributes: [
+                            "email",
+                            "firstName",
+                            "lastName",
+                            "address",
+                            "gender",
+                        ],
+                    },
+                    {
+                        model: db.AllCode,
+                        as: "timeTypeDataPatient",
+                        attributes: ["valueEn", "valueVi"],
+                    },
+                ],
+                raw: false,
+                nest: true,
+            });
+
+            resolve({
+                errCode: 0,
+                data: booking,
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
 module.exports = {
     getTopDoctorHome: getTopDoctorHome,
     getAllDoctors: getAllDoctors,
@@ -577,4 +627,5 @@ module.exports = {
     getProfileDoctorById: getProfileDoctorById,
     getListPatientForDoctor: getListPatientForDoctor,
     sendRemedy: sendRemedy,
+    getAllBooking: getAllBooking,
 };

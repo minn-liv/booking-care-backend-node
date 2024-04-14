@@ -47,14 +47,22 @@ let handleCreateNewUser = async (req, res) => {
 };
 
 let handleDeleteUser = async (req, res) => {
-    if (!req.body.id) {
+    try {
+        if (!req.body.id) {
+            return res.status(200).json({
+                errCode: 1,
+                errMessage: "Missing required parameters",
+            });
+        }
+        let message = await userService.deleteUser(req.body.id);
+        return res.status(200).json(message);
+    } catch (e) {
+        console.log(e);
         return res.status(200).json({
-            errCode: 1,
-            errMessage: "Missing required parameters",
+            errCode: -1,
+            errMessage: "Error from server",
         });
     }
-    let message = await userService.deleteUser(req.body.id);
-    return res.status(200).json(message);
 };
 
 let handleEditUser = async (req, res) => {
